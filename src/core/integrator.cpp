@@ -112,6 +112,8 @@ Spectrum EstimateDirect(const Interaction &it, const Point2f &uScattering,
     BxDFType bsdfFlags =
         specular ? BSDF_ALL : BxDFType(BSDF_ALL & ~BSDF_SPECULAR);
     Spectrum Ld(0.f);
+
+
     // Sample light source with multiple importance sampling
     Vector3f wi;
     Float lightPdf = 0, scatteringPdf = 0;
@@ -156,7 +158,7 @@ Spectrum EstimateDirect(const Interaction &it, const Point2f &uScattering,
                     Ld += f * Li / lightPdf;
                 else {
                     Float weight =
-                        PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+                        BalanceHeuristic(1, lightPdf, 1, scatteringPdf);
                     Ld += f * Li * weight / lightPdf;
                 }
             }
@@ -190,7 +192,7 @@ Spectrum EstimateDirect(const Interaction &it, const Point2f &uScattering,
             if (!sampledSpecular) {
                 lightPdf = light.Pdf_Li(it, wi);
                 if (lightPdf == 0) return Ld;
-                weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+                weight = BalanceHeuristic(1, scatteringPdf, 1, lightPdf);
             }
 
             // Find intersection and compute transmittance
