@@ -3,3 +3,8 @@ src/build
 src/bin
 src/objs
 .sconsign.dblite
+out
+*.vcxproj
+*.vcxproj.filters
+src/**/CMakeFiles/
+.vs/

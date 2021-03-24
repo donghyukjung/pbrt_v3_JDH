@@ -67,6 +67,7 @@ InfiniteAreaLight::InfiniteAreaLight(const Transform &LightToWorld,
     int width = 2 * Lmap->Width(), height = 2 * Lmap->Height();
     std::unique_ptr<Float[]> img(new Float[width * height]);
     float fwidth = 0.5f / std::min(width, height);
+    Lmean = 0.0f;
     ParallelFor(
         [&](int64_t v) {
             Float vp = (v + .5f) / (Float)height;
@@ -75,9 +76,24 @@ InfiniteAreaLight::InfiniteAreaLight(const Transform &LightToWorld,
                 Float up = (u + .5f) / (Float)width;
                 img[u + v * width] = Lmap->Lookup(Point2f(up, vp), fwidth).y();
                 img[u + v * width] *= sinTheta;
+                Lmean += img[u + v * width]; // add all luminance
             }
         },
         height, 32);
+
+    Lmean /= (width * height); // Calculate mean of HDR environment map
+
+    c_i = 0.8f;
+    Float tmp = 0.0f;
+    ParallelFor( // Calculate normalizing factor
+        [&](int64_t v) {
+            for (int u = 0; u < width; ++u) {
+                Float temp = img[u + v * width] - 2 * (1 - c_i) * Lmean;
+                tmp += (temp > 0) ? temp : 0;
+            }
+        },
+        height, 32);
+    b_ni_inv = 1.0f / tmp;
 
     // Compute sampling distributions for rows and columns of image
     distribution.reset(new Distribution2D(img.get(), width, height));
@@ -113,6 +129,7 @@ Spectrum InfiniteAreaLight::Sample_Li(const Interaction &ref, const Point2f &u,
 
     // Compute PDF for sampled infinite light direction
     *pdf = mapPdf / (2 * Pi * Pi * sinTheta);
+    //*pdf = b_ni_inv * fmax(0.0f, mapPdf - 2 * (1 - c_i) * Lmean);
     if (sinTheta == 0) *pdf = 0;
 
     // Return radiance value for infinite light direction

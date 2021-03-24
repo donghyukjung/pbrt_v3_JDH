@@ -73,6 +73,9 @@ class InfiniteAreaLight : public Light {
     std::unique_ptr<MIPMap<RGBSpectrum>> Lmap;
     Point3f worldCenter;
     Float worldRadius;
+    Float Lmean; // mean of HDR environment map luminance
+    Float b_ni_inv; // normalizing factor of pdf
+    Float c_i; // sampling fraction
     std::unique_ptr<Distribution2D> distribution;
 };
 
