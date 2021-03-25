@@ -83,7 +83,7 @@ InfiniteAreaLight::InfiniteAreaLight(const Transform &LightToWorld,
 
     Lmean /= (width * height); // Calculate mean of HDR environment map
 
-    c_i = 0.8f;
+    c_i = 0.5f;
     Float tmp = 0.0f;
     ParallelFor( // Calculate normalizing factor
         [&](int64_t v) {
@@ -128,8 +128,8 @@ Spectrum InfiniteAreaLight::Sample_Li(const Interaction &ref, const Point2f &u,
         LightToWorld(Vector3f(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
 
     // Compute PDF for sampled infinite light direction
-    *pdf = mapPdf / (2 * Pi * Pi * sinTheta);
-    //*pdf = b_ni_inv * fmax(0.0f, mapPdf - 2 * (1 - c_i) * Lmean);
+    //*pdf = mapPdf / (2 * Pi * Pi * sinTheta);
+    *pdf = b_ni_inv * fmax(0.0f, mapPdf / (2 * Pi * Pi * sinTheta) - 2 * (1 - c_i) * Lmean);
     if (sinTheta == 0) *pdf = 0;
 
     // Return radiance value for infinite light direction
