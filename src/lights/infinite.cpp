@@ -128,8 +128,10 @@ Spectrum InfiniteAreaLight::Sample_Li(const Interaction &ref, const Point2f &u,
         LightToWorld(Vector3f(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
 
     // Compute PDF for sampled infinite light direction
-    //*pdf = mapPdf / (2 * Pi * Pi * sinTheta);
-    *pdf = b_ni_inv * fmax(0.0f, mapPdf / (2 * Pi * Pi * sinTheta) - 2 * (1 - c_i) * Lmean);
+    *pdf = mapPdf / (2 * Pi * Pi * sinTheta);
+
+    // *pdf = b_ni_inv * fmax(0.0f, mapPdf / (2 * Pi * Pi * sinTheta) - 2 * (1 - c_i) * Lmean);
+    
     if (sinTheta == 0) *pdf = 0;
 
     // Return radiance value for infinite light direction
@@ -144,8 +146,9 @@ Float InfiniteAreaLight::Pdf_Li(const Interaction &, const Vector3f &w) const {
     Float theta = SphericalTheta(wi), phi = SphericalPhi(wi);
     Float sinTheta = std::sin(theta);
     if (sinTheta == 0) return 0;
-    return distribution->Pdf(Point2f(phi * Inv2Pi, theta * InvPi)) /
-           (2 * Pi * Pi * sinTheta);
+
+    return  b_ni_inv * fmax(0.0f, distribution->Pdf(Point2f(phi * Inv2Pi, theta * InvPi)) /
+           (2 * Pi * Pi * sinTheta) - 2 * (1 - c_i) * Lmean);
 }
 
 Spectrum InfiniteAreaLight::Sample_Le(const Point2f &u1, const Point2f &u2,
