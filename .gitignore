@@ -10,3 +10,4 @@ out
 *.vcxproj.filters
 src/**/CMakeFiles/
 .vs/
+.vs/slnx.sqlite
